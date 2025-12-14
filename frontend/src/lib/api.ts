@@ -1,6 +1,10 @@
 import type { JobDto, WorkerDto } from './types';
 
-const baseUrl = process.env.NEXT_PUBLIC_SCHEDULER_HTTP_URL ?? 'http://localhost:8080';
+// Server-side uses internal Docker network, client-side uses public URL
+const isServer = typeof window === 'undefined';
+const baseUrl = isServer
+  ? (process.env.SCHEDULER_INTERNAL_URL ?? 'http://localhost:8080')
+  : (process.env.NEXT_PUBLIC_SCHEDULER_HTTP_URL ?? 'http://localhost:8080');
 
 export async function listJobs(): Promise<JobDto[]> {
   const res = await fetch(`${baseUrl}/api/jobs`, { cache: 'no-store' });

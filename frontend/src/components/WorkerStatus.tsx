@@ -2,25 +2,34 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import type { WorkerDto } from '../lib/types';
-import { connectStomp } from '../lib/websocket';
+import { subscribeToTopic } from '../lib/websocket';
 
 export default function WorkerStatus({ initialWorkers }: { initialWorkers: WorkerDto[] }) {
   const [workers, setWorkers] = useState<WorkerDto[]>(initialWorkers);
   const byId = useMemo(() => new Map(workers.map(w => [w.id, w])), [workers]);
 
   useEffect(() => {
-    const client = connectStomp();
-    const sub = client.subscribe('/topic/workers', (msg) => {
+    let cancelled = false;
+    let unsub: (() => void) | null = null;
+
+    subscribeToTopic('/topic/workers', (msg) => {
       const w: WorkerDto = JSON.parse(msg.body);
       setWorkers((prev) => {
         const map = new Map(prev.map(p => [p.id, p]));
         map.set(w.id, w);
         return Array.from(map.values()).sort((a, b) => a.id.localeCompare(b.id));
       });
-    });
+    }).then((sub) => {
+      if (cancelled) {
+        sub.unsubscribe();
+      } else {
+        unsub = sub.unsubscribe;
+      }
+    }).catch(console.error);
+
     return () => {
-      sub.unsubscribe();
-      client.deactivate();
+      cancelled = true;
+      if (unsub) unsub();
     };
   }, []);
 

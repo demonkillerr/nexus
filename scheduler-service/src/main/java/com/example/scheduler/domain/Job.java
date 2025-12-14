@@ -21,7 +21,7 @@ public class Job {
   private Instant createdAt;
   private Instant completedAt;
 
-  @Column(columnDefinition = "jsonb")
+  @Column(columnDefinition = "text")
   private String parameters;
 
   private String assignedWorkerId;

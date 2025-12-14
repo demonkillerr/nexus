@@ -35,6 +35,7 @@ services:
     environment:
       NEXT_PUBLIC_SCHEDULER_HTTP_URL: http://localhost:8080
       NEXT_PUBLIC_SCHEDULER_WS_URL: http://localhost:8080/ws
+      SCHEDULER_INTERNAL_URL: http://scheduler:8080
     ports:
       - "3000:3000"
     depends_on:

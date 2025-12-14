@@ -2,19 +2,28 @@
 
 import { useEffect, useState } from 'react';
 import type { JobDto } from '../lib/types';
-import { connectStomp } from '../lib/websocket';
+import { subscribeToTopic } from '../lib/websocket';
 
 export default function JobProgress({ jobId, initialJob }: { jobId: string; initialJob: JobDto }) {
   const [job, setJob] = useState<JobDto>(initialJob);
 
   useEffect(() => {
-    const client = connectStomp();
-    const sub = client.subscribe(`/topic/jobs/${jobId}`, (msg) => {
+    let cancelled = false;
+    let unsub: (() => void) | null = null;
+
+    subscribeToTopic(`/topic/jobs/${jobId}`, (msg) => {
       setJob(JSON.parse(msg.body));
-    });
+    }).then((sub) => {
+      if (cancelled) {
+        sub.unsubscribe();
+      } else {
+        unsub = sub.unsubscribe;
+      }
+    }).catch(console.error);
+
     return () => {
-      sub.unsubscribe();
-      client.deactivate();
+      cancelled = true;
+      if (unsub) unsub();
     };
   }, [jobId]);
 
