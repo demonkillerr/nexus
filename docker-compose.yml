@@ -1,0 +1,41 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: nexus
+      POSTGRES_USER: nexus
+      POSTGRES_PASSWORD: nexus
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nexus -d nexus"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  scheduler:
+    build:
+      context: ./scheduler-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/nexus
+      SPRING_DATASOURCE_USERNAME: nexus
+      SPRING_DATASOURCE_PASSWORD: nexus
+      NEXUS_WS_ALLOWED_ORIGINS: http://localhost:3000
+      NEXUS_HEARTBEAT_TIMEOUT_SECONDS: 15
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+    environment:
+      NEXT_PUBLIC_SCHEDULER_HTTP_URL: http://localhost:8080
+      NEXT_PUBLIC_SCHEDULER_WS_URL: http://localhost:8080/ws
+    ports:
+      - "3000:3000"
+    depends_on:
+      - scheduler

@@ -1,0 +1,28 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: scheduler-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/nexus
+    username: nexus
+    password: nexus
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+nexus:
+  ws:
+    allowed-origins: ${NEXUS_WS_ALLOWED_ORIGINS:http://localhost:3000}
+  heartbeat-timeout-seconds: ${NEXUS_HEARTBEAT_TIMEOUT_SECONDS:15}

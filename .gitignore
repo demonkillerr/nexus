@@ -1,0 +1,16 @@
+**/target/
+**/.classpath
+**/.project
+**/.settings/
+**/.idea/
+**/*.iml
+
+**/node_modules/
+**/.next/
+**/dist/
+
+**/build/
+**/cmake-build-*/
+
+.env
+.env.local
